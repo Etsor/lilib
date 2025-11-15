@@ -3,11 +3,310 @@
 
 #include <stdlib.h>
 
-int rand_num(int start, int end);
+// Random
+int rand_i(int min, int max);
+double rand_d(double min, double max);
+float rand_f(float min, float max);
+int rand_bool();
+int rand_sign();
+
+// Matrix
+typedef struct Matrix_i_s {
+  size_t rows;
+  size_t cols;
+  int** data;
+} Matrix_i_t;
+
+typedef struct Matrix_d_s {
+  size_t rows;
+  size_t cols;
+  double** data;
+} Matrix_d_t;
+
+typedef struct Matrix_f_s {
+  size_t rows;
+  size_t cols;
+  float** data;
+} Matrix_f_t;
 
 #ifdef LITLIB_IMPL
-int rand_num(int start, int end) { return rand() % (start - end + 1) + start; }
 
+// Random
+int rand_i(int min, int max) { return min + rand() % (max - min + 1); }
+double rand_d(double min, double max)
+{
+    double t = (double)rand() / (double)RAND_MAX;
+    return min + t * (max - min);
+}
+float rand_f(float min, float max)
+{
+    float t = (float)rand() / (float)RAND_MAX;
+    return min + t * (max - min);
+}
+int rand_bool() { return rand() & 1; }
+int rand_sign() { return (rand() & 1) ? 1 : -1; }
+
+// Matrix
+// Integer
+Matrix_i_t matrix_i_alloc(size_t rows, size_t cols)
+{
+  Matrix_i_t m = { rows, cols, NULL };
+
+  m.data = malloc(rows * sizeof(int*));
+  if (!m.data) {
+    m.rows = m.cols = 0;
+    m.data = NULL;
+    return m;
+  }
+
+  for (size_t i = 0; i < rows; ++i) {
+    m.data[i] = malloc(cols * sizeof(int));
+    if (!m.data[i]) {
+      for (size_t j = 0; j < i; ++j)
+        free(m.data[j]);
+      free(m.data);
+
+      m.rows = m.cols = 0;
+      m.data = NULL;
+
+      return m;
+    }
+  }
+
+  return m;
+}
+
+void matrix_i_free(Matrix_i_t* m)
+{
+  if (!m || !m->data) return;
+
+  for (size_t i = 0; i < m->rows; ++i)
+    free(m->data[i]);
+  free(m->data);
+
+  m->rows = m->cols = 0;
+  m->data = NULL;
+}
+
+Matrix_i_t matrix_i_multiply(Matrix_i_t m1, Matrix_i_t m2)
+{
+  Matrix_i_t err = {0, 0, NULL};
+  if (!m1.data || !m2.data) return err;
+  if (m1.cols != m2.rows) return err;
+
+  Matrix_i_t m = matrix_i_alloc(m1.rows, m2.cols);
+  if (!m.data) return err;
+
+  for (size_t row = 0; row < m1.rows; ++row) {
+    for (size_t col = 0; col < m2.cols; ++col) {
+      int sum = 0.0;
+
+      for (size_t k = 0; k < m1.cols; ++k)
+        sum += m1.data[row][k] * m2.data[k][col];
+
+      m.data[row][col] = sum;
+    }
+  }
+
+  return m;
+}
+
+void matrix_i_fill_random(Matrix_i_t* m, int min_el, int max_el)
+{
+  for (size_t row = 0; row < m->rows; ++row)
+    for (size_t col = 0; col < m->cols; ++col)
+      m->data[row][col] = rand_i(min_el, max_el);
+}
+
+void matrix_i_print(Matrix_i_t m) {
+  for (size_t row = 0; row < m.rows; ++row) {
+    for (size_t col = 0; col < m.cols; ++col)
+      printf("%d ", m.data[row][col]);
+    printf("\n");
+  }
+}
+
+void matrix_i_pprint(Matrix_i_t m) {
+  for (size_t row = 0; row < m.rows; ++row) {
+    for (size_t col = 0; col < m.cols; ++col)
+      printf("| %8d ", m.data[row][col]);
+    printf("|\n");
+  }
+}
+
+// Double
+Matrix_d_t matrix_d_alloc(size_t rows, size_t cols)
+{
+  Matrix_d_t m = { rows, cols, NULL };
+
+  m.data = malloc(rows * sizeof(double*));
+  if (!m.data) {
+    m.rows = m.cols = 0;
+    m.data = NULL;
+    return m;
+  }
+
+  for (size_t i = 0; i < rows; ++i) {
+    m.data[i] = malloc(cols * sizeof(double));
+    if (!m.data[i]) {
+      for (size_t j = 0; j < i; ++j)
+        free(m.data[j]);
+      free(m.data);
+
+      m.rows = m.cols = 0;
+      m.data = NULL;
+
+      return m;
+    }
+  }
+
+  return m;
+}
+
+void matrix_d_free(Matrix_d_t* m)
+{
+  if (!m || !m->data) return;
+
+  for (size_t i = 0; i < m->rows; ++i)
+    free(m->data[i]);
+  free(m->data);
+
+  m->rows = m->cols = 0;
+  m->data = NULL;
+}
+
+Matrix_d_t matrix_d_multiply(Matrix_d_t m1, Matrix_d_t m2)
+{
+  Matrix_d_t err = {0, 0, NULL};
+  if (!m1.data || !m2.data) return err;
+  if (m1.cols != m2.rows) return err;
+
+  Matrix_d_t m = matrix_d_alloc(m1.rows, m2.cols);
+  if (!m.data) return err;
+
+  for (size_t row = 0; row < m1.rows; ++row) {
+    for (size_t col = 0; col < m2.cols; ++col) {
+      double sum = 0.0;
+
+      for (size_t k = 0; k < m1.cols; ++k)
+        sum += m1.data[row][k] * m2.data[k][col];
+
+      m.data[row][col] = sum;
+    }
+  }
+
+  return m;
+}
+
+void matrix_d_fill_random(Matrix_d_t* m, double min_el, double max_el)
+{
+  for (size_t row = 0; row < m->rows; ++row)
+    for (size_t col = 0; col < m->cols; ++col)
+      m->data[row][col] = rand_d(min_el, max_el);
+}
+
+void matrix_d_print(Matrix_d_t m) {
+  for (size_t row = 0; row < m.rows; ++row) {
+    for (size_t col = 0; col < m.cols; ++col)
+      printf("%f ", m.data[row][col]);
+    printf("\n");
+  }
+}
+
+void matrix_d_pprint(Matrix_d_t m) {
+  for (size_t row = 0; row < m.rows; ++row) {
+    for (size_t col = 0; col < m.cols; ++col)
+      printf("| %8.3f ", m.data[row][col]);
+    printf("|\n");
+  }
+}
+
+// Float
+Matrix_f_t matrix_f_alloc(size_t rows, size_t cols)
+{
+  Matrix_f_t m = { rows, cols, NULL };
+
+  m.data = malloc(rows * sizeof(float*));
+  if (!m.data) {
+    m.rows = m.cols = 0;
+    m.data = NULL;
+    return m;
+  }
+
+  for (size_t i = 0; i < rows; ++i) {
+    m.data[i] = malloc(cols * sizeof(float));
+    if (!m.data[i]) {
+      for (size_t j = 0; j < i; ++j)
+        free(m.data[j]);
+      free(m.data);
+
+      m.rows = m.cols = 0;
+      m.data = NULL;
+
+      return m;
+    }
+  }
+
+  return m;
+}
+
+void matrix_f_free(Matrix_f_t* m)
+{
+  if (!m || !m->data) return;
+
+  for (size_t i = 0; i < m->rows; ++i)
+    free(m->data[i]);
+  free(m->data);
+
+  m->rows = m->cols = 0;
+  m->data = NULL;
+}
+
+Matrix_f_t matrix_f_multiply(Matrix_f_t m1, Matrix_f_t m2)
+{
+  Matrix_f_t err = {0, 0, NULL};
+  if (!m1.data || !m2.data) return err;
+  if (m1.cols != m2.rows) return err;
+
+  Matrix_f_t m = matrix_f_alloc(m1.rows, m2.cols);
+  if (!m.data) return err;
+
+  for (size_t row = 0; row < m1.rows; ++row) {
+    for (size_t col = 0; col < m2.cols; ++col) {
+      float sum = 0.0;
+
+      for (size_t k = 0; k < m1.cols; ++k)
+        sum += m1.data[row][k] * m2.data[k][col];
+
+      m.data[row][col] = sum;
+    }
+  }
+
+  return m;
+}
+
+void matrix_f_fill_random(Matrix_f_t* m, float min_el, float max_el)
+{
+  for (size_t row = 0; row < m->rows; ++row)
+    for (size_t col = 0; col < m->cols; ++col)
+      m->data[row][col] = rand_f(min_el, max_el);
+}
+
+void matrix_f_print(Matrix_f_t m) {
+  for (size_t row = 0; row < m.rows; ++row) {
+    for (size_t col = 0; col < m.cols; ++col)
+      printf("%f ", m.data[row][col]);
+    printf("\n");
+  }
+}
+
+void matrix_f_pprint(Matrix_f_t m) {
+  for (size_t row = 0; row < m.rows; ++row) {
+    for (size_t col = 0; col < m.cols; ++col)
+      printf("| %8.3f ", m.data[row][col]);
+    printf("|\n");
+  }
+}
 #endif // LITLIB_IMPL
 
 #endif // LITLIB_H
