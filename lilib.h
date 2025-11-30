@@ -1,5 +1,5 @@
-#ifndef LITLIB_H
-#define LITLIB_H
+#ifndef LILIB_H
+#define LILIB_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -68,7 +68,7 @@ void matrix_f_fill_normal(Matrix_f_t* m, float mean, float stddev);
 void matrix_f_print(Matrix_f_t m);
 void matrix_f_pprint(Matrix_f_t m);
 
-#ifdef LITLIB_IMPL
+#ifdef LILIB_IMPL
 // Files
 int file_write(const char* filename, const char* data)
 {
@@ -397,6 +397,6 @@ void matrix_f_pprint(Matrix_f_t m)
     printf("|\n");
   }
 }
-#endif // LITLIB_IMPL
+#endif // LILIB_IMPL
 
-#endif // LITLIB_H
+#endif // LILIB_H
