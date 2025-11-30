@@ -9,6 +9,11 @@
 #define M_PI 3.14159265358979323846
 #endif // M_PI
 
+// Files
+int file_write(const char* filename, const char* data);
+int file_append(const char* filename, const char* data);
+char* file_read(char* filename);
+
 // Random
 int rand_i(int min, int max);
 double rand_d(double min, double max);
@@ -64,6 +69,35 @@ void matrix_f_print(Matrix_f_t m);
 void matrix_f_pprint(Matrix_f_t m);
 
 #ifdef LITLIB_IMPL
+// Files
+int file_write(const char* filename, const char* data)
+{
+    FILE* f = fopen(filename, "w");
+    if (!f) return 1;
+
+    if (fputs(data, f) == EOF) {
+        fclose(f);
+        return 2;
+    }
+
+    fclose(f);
+    return 0;
+}
+
+int file_append(const char* filename, const char* data)
+{
+    FILE* f = fopen(filename, "a");
+    if (!f) return 1;
+
+    if (fputs(data, f) == EOF) {
+        fclose(f);
+        return 2;
+    }
+
+    fclose(f);
+    return 0;
+}
+
 
 // Random
 int rand_i(int min, int max) { return min + rand() % (max - min + 1); }
